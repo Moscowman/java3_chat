@@ -77,6 +77,19 @@ public class ClientHandler {
                                 sendMsg("/end");
                                 break;
                             }
+                            if (str.startsWith("/chnick ")) {
+                                String[] token = str.split("\\s");
+                                if (token.length < 2) {
+                                    continue;
+                                }
+                                boolean b = server.getAuthService()
+                                        .changeNick(login, token[1]);
+                                if (b) {
+                                    sendMsg("/chnickok");
+                                } else {
+                                    sendMsg("/chnickno");
+                                }
+                            }
                             if (str.startsWith("/w ")) {
                                 String[] token = str.split("\\s", 3);
                                 if (token.length < 3) {

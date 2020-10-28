@@ -7,10 +7,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.ListView;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.stage.Modality;
@@ -142,6 +139,15 @@ public class Controller implements Initializable {
                                     }
                                 });
                             }
+
+                            if (str.startsWith("/chnickok")) {
+                                textArea.appendText("Смена ника прошла успешно. Зайдите в чат заново для обновления информации");
+                            }
+                            if (str.startsWith("/chnickno")) {
+                                textArea.appendText("Сменить ник не удалось\n" +
+                                        " возможно такой никнейм уже занятsd");
+                            }
+
                         } else {
                             textArea.appendText(str + "\n");
                         }

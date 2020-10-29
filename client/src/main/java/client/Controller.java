@@ -13,11 +13,12 @@ import javafx.scene.layout.HBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.file.*;
+import java.util.List;
 import java.util.ResourceBundle;
 
 public class Controller implements Initializable {
@@ -49,6 +50,7 @@ public class Controller implements Initializable {
 
     private boolean authenticated;
     private String nickname;
+    BufferedWriter historyWriter;
 
     private void setAuthenticated(boolean authenticated) {
         this.authenticated = authenticated;
@@ -104,6 +106,17 @@ public class Controller implements Initializable {
                         if (str.startsWith("/authok ")) {
                             nickname = str.split("\\s")[1];
                             setAuthenticated(true);
+                            Path historyFilePath = Paths.get("history_" + nickname + ".txt");
+                            if (!Files.exists(historyFilePath)) {
+                                Files.createFile(historyFilePath);
+                            }
+                            List<String> lines = Files.readAllLines(historyFilePath);
+                            int firstLine = lines.size() > 100 ? lines.size() - 100 : 0;
+                            for (int i = firstLine; i < lines.size(); i++) {
+                                textArea.appendText(lines.get(i)+"\n");
+                            }
+                            Charset charset = Charset.forName("UTF-8");
+                            historyWriter = Files.newBufferedWriter(historyFilePath, StandardOpenOption.APPEND);
                             break;
                         }
 
@@ -119,7 +132,7 @@ public class Controller implements Initializable {
                             throw new RuntimeException("disconnected by timeout");
                         }
 
-                        textArea.appendText(str + "\n");
+                        printToScreenAndLog(str + "\n");
                     }
 
                     //цикл работы
@@ -141,15 +154,15 @@ public class Controller implements Initializable {
                             }
 
                             if (str.startsWith("/chnickok")) {
-                                textArea.appendText("Смена ника прошла успешно. Зайдите в чат заново для обновления информации");
+                                printToScreenAndLog("Смена ника прошла успешно. Зайдите в чат заново для обновления информации");
                             }
                             if (str.startsWith("/chnickno")) {
-                                textArea.appendText("Сменить ник не удалось\n" +
+                                printToScreenAndLog("Сменить ник не удалось\n" +
                                         " возможно такой никнейм уже занятsd");
                             }
 
                         } else {
-                            textArea.appendText(str + "\n");
+                            printToScreenAndLog(str + "\n");
                         }
                     }
                 } catch (RuntimeException e) {
@@ -162,6 +175,7 @@ public class Controller implements Initializable {
                         socket.close();
                         in.close();
                         out.close();
+                        historyWriter.close();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -171,6 +185,11 @@ public class Controller implements Initializable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void printToScreenAndLog(String string) throws IOException {
+        textArea.appendText(string);
+        historyWriter.write(string, 0, string.length());
     }
 
     public void sendMsg(ActionEvent actionEvent) {
